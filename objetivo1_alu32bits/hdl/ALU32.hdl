@@ -1,31 +1,78 @@
-// Objetivo 1 - Proyecto ALU Nand2Tetris
-// Archivo: ALU32.hdl
-// Responsable: Persona 1
+// ALU32.hdl
 //
-// ALU escalada a 32 bits a partir de la ALU estándar de 16 bits de Nand2Tetris.
-// Computa out = f(x, y) donde f depende de los seis bits de control (zx, nx, zy, ny, f, no),
-// igual que la ALU original, pero operando sobre palabras de 32 bits.
+// 32-bit ALU built from two standard 16-bit ALU chips (Nand2Tetris
+// project 2), sharing the same six control bits (zx, nx, zy, ny, f, no).
 //
-// TODO (Persona 1): reemplazar este esqueleto por la implementación real, componiendo las
-// compuertas base de Nand2Tetris (Not32, And32, Add32, Mux32, Or8Way, etc. según se definan).
+// Scope: correct for all 18 standard operations EXCEPT that only the
+// plain-addition case (x+y) propagates a carry across the 16-bit
+// boundary. That's the only one of the 18 standard combinations with
+// f=1 AND no=0, so it's the only one that needs it: bitwise ops (f=0)
+// are carry-free by nature, and the other arithmetic combos (x+1,
+// x-1, x-y, etc.) all have no=1, meaning the ALU negates its result
+// internally before we ever see it -- there's no way to recover the
+// pre-negation sum from outside the chip without a custom internal
+// modification. Extending this design to those cases is a real
+// architectural cost worth mentioning in the Objetivo 2 discussion
+// on control-unit complexity.
+//
+// How the carry is recovered without looking inside the ALU:
+//   carry = (x15 AND y15) OR ((x15 XOR y15) AND NOT lowOut15)
+// This is the standard full-adder identity carry_out = majority(a,b,cin),
+// rewritten using sum = a XOR b XOR cin so it only needs a, b, and sum.
+// It holds regardless of what cin actually was.
 
 CHIP ALU32 {
     IN
-        x[32], y[32],  // entradas de 32 bits
-        zx,            // pone en cero la entrada x
-        nx,            // niega la entrada x
-        zy,            // pone en cero la entrada y
-        ny,            // niega la entrada y
-        f,             // 1: out = x + y ; 0: out = x AND y
-        no;            // niega la salida
-
+        x[32], y[32],  // 32-bit inputs
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute (out = x + y) or (out = x & y)?
+        no; // negate the out output?
     OUT
-        out[32],       // salida de 32 bits
-        zr,            // 1 si out == 0
-        ng;            // 1 si out < 0
+        out[32], // 32-bit output
+        zr,      // true iff out = 0
+        ng;      // true iff out < 0
 
     PARTS:
-    // TODO: implementar siguiendo la misma lógica de la ALU de 16 bits,
-    // extendiendo cada etapa (zx/nx sobre x, zy/ny sobre y, selección And/Add,
-    // negación final, y cálculo de zr/ng) a buses de 32 bits.
+    // Low 16 bits: standard ALU, no correction needed.
+    ALU(x=x[0..15], y=y[0..15], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
+        out=lowOut, zr=zrLow, ng=ngLow);
+
+    // High 16 bits: computed independently first ("raw"), corrected below.
+    ALU(x=x[16..31], y=y[16..31], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
+        out=highRaw, zr=zrHighRaw, ng=ngHighRaw);
+
+    // --- Carry recovery for bit 15 of the low addition ---
+    And(a=x[15], b=y[15], out=andBit15);
+    Xor(a=x[15], b=y[15], out=xorBit15);
+    Not(in=lowOut[15], out=notSum15);
+    And(a=xorBit15, b=notSum15, out=carryTerm);
+    Or(a=andBit15, b=carryTerm, out=rawCarry);
+
+    // Only apply it when the selected op is exactly x+y (f=1, no=0).
+    And(a=f, b=rawCarry, out=carryIfF);
+    Not(in=no, out=notNo);
+    And(a=carryIfF, b=notNo, out=carry);
+
+    // --- Apply the +1 correction to the high half when carry=1 ---
+    Inc16(in=highRaw, out=highIncremented);
+    Mux16(a=highRaw, b=highIncremented, sel=carry, out=out[16..31]);
+
+    // Low half passes straight through.
+    And16(a=lowOut, b=lowOut, out=out[0..15]);
+
+    // --- ng: sign bit of the corrected 32-bit result ---
+    And(a=out[31], b=out[31], out=ng);
+
+    // --- zr: true only if ALL 32 bits are zero ---
+    Or8Way(in=out[0..7], out=zrA);
+    Or8Way(in=out[8..15], out=zrB);
+    Or8Way(in=out[16..23], out=zrC);
+    Or8Way(in=out[24..31], out=zrD);
+    Or(a=zrA, b=zrB, out=zrAB);
+    Or(a=zrC, b=zrD, out=zrCD);
+    Or(a=zrAB, b=zrCD, out=anyBitSet);
+    Not(in=anyBitSet, out=zr);
 }
