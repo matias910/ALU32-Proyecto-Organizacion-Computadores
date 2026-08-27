@@ -1,0 +1,31 @@
+// Objetivo 1 - Proyecto ALU Nand2Tetris
+// Archivo: ALU32.hdl
+// Responsable: Persona 1
+//
+// ALU escalada a 32 bits a partir de la ALU estándar de 16 bits de Nand2Tetris.
+// Computa out = f(x, y) donde f depende de los seis bits de control (zx, nx, zy, ny, f, no),
+// igual que la ALU original, pero operando sobre palabras de 32 bits.
+//
+// TODO (Persona 1): reemplazar este esqueleto por la implementación real, componiendo las
+// compuertas base de Nand2Tetris (Not32, And32, Add32, Mux32, Or8Way, etc. según se definan).
+
+CHIP ALU32 {
+    IN
+        x[32], y[32],  // entradas de 32 bits
+        zx,            // pone en cero la entrada x
+        nx,            // niega la entrada x
+        zy,            // pone en cero la entrada y
+        ny,            // niega la entrada y
+        f,             // 1: out = x + y ; 0: out = x AND y
+        no;            // niega la salida
+
+    OUT
+        out[32],       // salida de 32 bits
+        zr,            // 1 si out == 0
+        ng;            // 1 si out < 0
+
+    PARTS:
+    // TODO: implementar siguiendo la misma lógica de la ALU de 16 bits,
+    // extendiendo cada etapa (zx/nx sobre x, zy/ny sobre y, selección And/Add,
+    // negación final, y cálculo de zr/ng) a buses de 32 bits.
+}

@@ -1,0 +1,27 @@
+// Objetivo 2 - Proyecto ALU Nand2Tetris
+// Archivo: ALU3.hdl
+// Responsable: Persona 2
+//
+// ALU no convencional de tres operandos de entrada (X, Y, Z) de 16 bits.
+// Ejecuta un conjunto de operaciones lógicas/aritméticas combinadas seleccionadas por
+// un código de operación (opcode), según lo definido en README.md de esta carpeta.
+//
+// TODO (Persona 2): definir el ancho exacto de "opcode" (número de bits de control) y
+// reemplazar este esqueleto por la implementación real, componiendo las compuertas base
+// de Nand2Tetris (And16, Or16, Add16, Mux16, etc.).
+
+CHIP ALU3 {
+    IN
+        x[16], y[16], z[16],  // tres operandos de 16 bits
+        opcode[3];            // TODO: ajustar ancho según el número de operaciones definidas
+
+    OUT
+        out[16],              // salida de 16 bits
+        zr,                   // 1 si out == 0
+        ng;                   // 1 si out < 0
+
+    PARTS:
+    // TODO: implementar la selección de operaciones (X+Y+Z, (X AND Y) OR Z, etc.)
+    // usando Mux16/Mux4Way16/Mux8Way16 controlados por "opcode", y calcular zr/ng
+    // de forma análoga a la ALU estándar de Nand2Tetris.
+}
