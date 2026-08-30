@@ -1,0 +1,9 @@
+# Nand2Tetris
+*.out
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
