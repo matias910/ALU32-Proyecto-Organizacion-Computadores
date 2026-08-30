@@ -1,19 +1,33 @@
-// Objetivo 2 - Proyecto ALU Nand2Tetris
-// Archivo: ALU3.hdl
-// Responsable: Persona 2
+// ALU3.hdl
 //
-// ALU no convencional de tres operandos de entrada (X, Y, Z) de 16 bits.
-// Ejecuta un conjunto de operaciones lógicas/aritméticas combinadas seleccionadas por
-// un código de operación (opcode), según lo definido en README.md de esta carpeta.
+// Objetivo 2 - ALU no convencional de tres operandos de entrada (X, Y, Z)
+// de 16 bits, seleccionada por un codigo de operacion de 3 bits (8 operaciones).
 //
-// TODO (Persona 2): definir el ancho exacto de "opcode" (número de bits de control) y
-// reemplazar este esqueleto por la implementación real, componiendo las compuertas base
-// de Nand2Tetris (And16, Or16, Add16, Mux16, etc.).
+// Estrategia de diseño: en lugar de construir un camino de datos que
+// reconfigure sus compuertas segun el opcode (como hace la ALU estandar con
+// zx/nx/zy/ny/f/no), aqui se calculan las 8 operaciones EN PARALELO usando
+// las compuertas base de 16 bits, y se elige el resultado final con un
+// Mux8Way16 controlado por opcode. Es menos eficiente en area que una ALU
+// reconfigurable, pero es mucho mas simple de razonar, verificar y explicar
+// -- una decision de diseño que vale la pena mencionar en el analisis de
+// viabilidad (mas compuertas = mas area y mas consumo, a cambio de una
+// unidad de control trivial).
+//
+// Tabla de operaciones (ver tambien README.md de esta carpeta):
+//   opcode | operacion
+//   000    | X + Y + Z
+//   001    | (X AND Y) OR Z
+//   010    | (X OR Y) AND Z
+//   011    | X AND Y AND Z
+//   100    | X OR Y OR Z
+//   101    | X + Y - Z
+//   110    | (NOT X) AND Y AND Z
+//   111    | -(X + Y + Z)
 
 CHIP ALU3 {
     IN
         x[16], y[16], z[16],  // tres operandos de 16 bits
-        opcode[3];            // TODO: ajustar ancho según el número de operaciones definidas
+        opcode[3];            // selecciona una de las 8 operaciones
 
     OUT
         out[16],              // salida de 16 bits
@@ -21,7 +35,49 @@ CHIP ALU3 {
         ng;                   // 1 si out < 0
 
     PARTS:
-    // TODO: implementar la selección de operaciones (X+Y+Z, (X AND Y) OR Z, etc.)
-    // usando Mux16/Mux4Way16/Mux8Way16 controlados por "opcode", y calcular zr/ng
-    // de forma análoga a la ALU estándar de Nand2Tetris.
+    // Subexpresiones compartidas entre operaciones (reduce compuertas)
+    And16(a=x, b=y, out=xyAnd);
+    Or16(a=x, b=y, out=xyOr);
+    Add16(a=x, b=y, out=xySum);
+
+    // op0 (000): X + Y + Z
+    Add16(a=xySum, b=z, out=op0);
+
+    // op1 (001): (X AND Y) OR Z
+    Or16(a=xyAnd, b=z, out=op1);
+
+    // op2 (010): (X OR Y) AND Z
+    And16(a=xyOr, b=z, out=op2);
+
+    // op3 (011): X AND Y AND Z
+    And16(a=xyAnd, b=z, out=op3);
+
+    // op4 (100): X OR Y OR Z
+    Or16(a=xyOr, b=z, out=op4);
+
+    // op5 (101): X + Y - Z  (complemento a dos: X + Y + (NOT Z + 1))
+    Not16(in=z, out=notZ);
+    Inc16(in=notZ, out=negZ);
+    Add16(a=xySum, b=negZ, out=op5);
+
+    // op6 (110): (NOT X) AND Y AND Z
+    Not16(in=x, out=notX);
+    And16(a=notX, b=y, out=notXAndY);
+    And16(a=notXAndY, b=z, out=op6);
+
+    // op7 (111): -(X + Y + Z)  (complemento a dos de op0)
+    Not16(in=op0, out=notOp0);
+    Inc16(in=notOp0, out=op7);
+
+    // Seleccion final segun opcode
+    Mux8Way16(a=op0, b=op1, c=op2, d=op3, e=op4, f=op5, g=op6, h=op7,
+               sel=opcode, out=out);
+
+    // Banderas, igual que en la ALU estandar de 16 bits
+    Or8Way(in=out[0..7], out=zrA);
+    Or8Way(in=out[8..15], out=zrB);
+    Or(a=zrA, b=zrB, out=anyBitSet);
+    Not(in=anyBitSet, out=zr);
+
+    And(a=out[15], b=out[15], out=ng);
 }

@@ -1,0 +1,57 @@
+<svg width="680" height="560" viewBox="0 0 680 560" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Diagrama de bloques - ALU32</title>
+<style>
+.box{fill:#f8fafc;stroke:#334155;stroke-width:1.5;}
+.boxTeal{fill:#e6fffa;stroke:#0f766e;stroke-width:1.5;}
+.boxAmber{fill:#fffbeb;stroke:#b45309;stroke-width:1.5;}
+.boxPurple{fill:#f5f3ff;stroke:#6d28d9;stroke-width:1.5;}
+.th{font:600 14px sans-serif;fill:#111827;}
+.ts{font:12px sans-serif;fill:#374151;}
+.arr{stroke:#334155;stroke-width:1.5;fill:none;marker-end:url(#arrow);}
+</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#334155" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+<text class="ts" x="170" y="24" text-anchor="middle">x[0..15], y[0..15]</text>
+<text class="ts" x="510" y="24" text-anchor="middle">x[16..31], y[16..31]</text>
+
+<rect class="boxTeal" x="50" y="40" width="240" height="56" rx="8"/>
+<text class="th" x="170" y="60" text-anchor="middle">ALU16 (low)</text>
+<text class="ts" x="170" y="80" text-anchor="middle">out=lowOut, zr, ng</text>
+
+<rect class="boxTeal" x="390" y="40" width="240" height="56" rx="8"/>
+<text class="th" x="510" y="60" text-anchor="middle">ALU16 (high, raw)</text>
+<text class="ts" x="510" y="80" text-anchor="middle">out=highRaw</text>
+
+<line x1="170" y1="96" x2="170" y2="150" class="arr"/>
+<line x1="450" y1="96" x2="450" y2="150" class="arr"/>
+<line x1="600" y1="96" x2="600" y2="250" class="arr"/>
+
+<rect class="boxAmber" x="50" y="150" width="240" height="56" rx="8"/>
+<text class="th" x="170" y="170" text-anchor="middle">Carry-out logic</text>
+<text class="ts" x="170" y="190" text-anchor="middle">from x15, y15, lowOut15</text>
+
+<rect class="boxPurple" x="390" y="150" width="120" height="56" rx="8"/>
+<text class="th" x="450" y="172" text-anchor="middle">Inc16</text>
+<text class="ts" x="450" y="190" text-anchor="middle">high+1</text>
+
+<path d="M170 206 L170 230 L390 230 L390 250" fill="none" class="arr"/>
+<text class="ts" x="280" y="222" text-anchor="middle">sel (gated por f · ¬no)</text>
+<line x1="450" y1="206" x2="450" y2="250" class="arr"/>
+
+<rect class="boxPurple" x="390" y="250" width="240" height="56" rx="8"/>
+<text class="th" x="510" y="270" text-anchor="middle">Mux16</text>
+<text class="ts" x="510" y="290" text-anchor="middle">highRaw vs high+1</text>
+
+<path d="M280 96 L280 320 L250 320 L250 350" fill="none" class="arr"/>
+<path d="M510 306 L510 330 L430 330 L430 350" fill="none" class="arr"/>
+
+<rect class="box" x="150" y="350" width="380" height="56" rx="8"/>
+<text class="th" x="340" y="370" text-anchor="middle">out[0..31]</text>
+<text class="ts" x="340" y="390" text-anchor="middle">low | high corregido</text>
+
+<line x1="340" y1="406" x2="340" y2="450" class="arr"/>
+
+<rect class="box" x="150" y="450" width="380" height="56" rx="8"/>
+<text class="th" x="340" y="470" text-anchor="middle">Flags: zr, ng</text>
+<text class="ts" x="340" y="490" text-anchor="middle">zr = los 32 bits en cero, ng = out[31]</text>
+</svg>

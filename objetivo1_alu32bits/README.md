@@ -33,9 +33,23 @@ CHIP ALU32 {
 
 ## Notas de diseño
 
-- Documentar aquí cómo se adaptan/replican las señales de control al escalar de 16 a 32 bits
-  (p. ej. extensión de los sumadores, multiplexores y compuertas de negación/enmascarado).
-- Incluir capturas o exportar el diagrama de bloques a `diagramas/` antes de la entrega final.
+Se componen dos chips `ALU` estándar (mitad baja y mitad alta), compartiendo las mismas seis
+señales de control. Las operaciones bit a bit (AND, OR, NOT) quedan correctas de inmediato al
+replicar el control en ambas mitades. La suma (`x+y`) necesita propagar un acarreo del bit 15
+al bit 16, que no está expuesto por el chip `ALU`; se recupera con:
+
+```
+carry = (x15 AND y15) OR ((x15 XOR y15) AND NOT sum15)
+```
+
+aplicado solo cuando `f=1, no=0` (la única de las 18 funciones estándar con esa combinación),
+y se corrige la mitad alta con `Inc16` + `Mux16`. Ver el detalle completo en
+[`docs/informe_final.md`](../docs/informe_final.md#21-diseño-del-circuito) y el diagrama en
+[`diagramas/ALU32_diagrama.svg`](diagramas/ALU32_diagrama.svg).
+
+**Limitación conocida:** para operaciones con `no=1` (`x+1`, `x-1`, `x-y`, etc.) el acarreo
+no se corrige, porque la ALU niega su resultado internamente antes de exponerlo y no es
+posible recuperar la suma previa a esa negación sin modificar el chip por dentro.
 
 ## Cómo probar
 

@@ -1,3 +1,9 @@
-|   x    |   y    |zx |nx |zy |ny |f  |no |  out   |zr |ng |
-// TODO (Persona 1 / Persona 3): generar este archivo ejecutando la implementación final
-// contra los casos definidos en ALU32.tst, o calculando manualmente los valores esperados.
+|      x       |      y       |zx |nx |zy |ny |f  |no |     out      |zr |ng |
+|             0|             0| 1 | 0 | 1 | 0 | 1 | 0 |             0| 1 | 0 |
+|            17|             3| 0 | 0 | 0 | 0 | 1 | 0 |            20| 0 | 0 |
+|             5|            -5| 0 | 0 | 0 | 0 | 1 | 0 |             0| 1 | 0 |
+|         65535|             1| 0 | 0 | 0 | 0 | 1 | 0 |         65536| 0 | 0 |
+|            -1|            -1| 0 | 0 | 0 | 0 | 1 | 0 |            -2| 0 | 1 |
+|            12|            10| 0 | 0 | 0 | 0 | 0 | 0 |             8| 0 | 0 |
+|            12|            10| 0 | 1 | 0 | 1 | 0 | 1 |            14| 0 | 0 |
+|            -5|             0| 0 | 0 | 1 | 0 | 1 | 0 |            -5| 0 | 1 |
