@@ -1,7 +1,7 @@
 # ALU Extendida — Proyecto Nand2Tetris
 
 [![Plataforma](https://img.shields.io/badge/plataforma-Nand2Tetris-2E5590)](https://www.nand2tetris.org/)
-[![Estado](https://img.shields.io/badge/estado-en%20desarrollo-yellow)]()
+[![Estado](https://img.shields.io/badge/estado-listo%20para%20video-brightgreen)]()
 [![Licencia](https://img.shields.io/badge/uso-académico-lightgrey)]()
 
 Proyecto académico que extiende la arquitectura estándar de la Unidad Aritmético Lógica (ALU)
@@ -37,11 +37,11 @@ Diseño de una ALU que acepta tres operandos de 16 bits.
 
 ## 👥 Equipo y roles
 
-| Integrante   | Rol principal                                  | Responsabilidad central |
-|--------------|-------------------------------------------------|--------------------------|
-| **Persona 1** | Líder Objetivo 1 (ALU 32 bits)                 | Diseño del circuito y desarrollo del `.hdl` de la ALU de 32 bits |
-| **Persona 2** | Líder Objetivo 2 — Diseño (ALU de 3 entradas)  | Definición del conjunto de operaciones, bits de control y `.hdl` |
-| **Persona 3** | Líder de Pruebas, Análisis y Documentación     | Scripts de prueba, análisis de viabilidad y consolidación del informe |
+| Integrante   | Nombre completo | Rol principal | Responsabilidad central |
+|--------------|-----------------|----------------|--------------------------|
+| **Persona 1** | Matias Zapata Rojas | Líder Objetivo 1 (ALU 32 bits) | Diseño del circuito y desarrollo del `.hdl` de la ALU de 32 bits |
+| **Persona 2** | Samuel Valencia Montoya | Líder Objetivo 2 — Diseño (ALU de 3 entradas) | Definición del conjunto de operaciones, bits de control y `.hdl` |
+| **Persona 3** | Jeronimo Jaramillo Agudelo | Líder de Pruebas, Análisis y Documentación | Scripts de prueba, análisis de viabilidad y consolidación del informe |
 
 El cronograma detallado de 2 semanas y la distribución día a día están en
 [`docs/plan_de_trabajo.md`](docs/plan_de_trabajo.md).
@@ -63,7 +63,8 @@ alu-nand2tetris-proyecto/
 │   ├── tests/
 │   │   ├── ALU32.tst                  # Script de prueba
 │   │   └── ALU32.cmp                  # Salida esperada (comparación)
-│   └── diagramas/                     # Diagrama de bloques/lógico (imagen o PDF)
+│   └── diagramas/
+│       └── ALU32_diagrama.svg         # Diagrama de bloques/lógico
 └── objetivo2_alu3entradas/
     ├── README.md
     ├── hdl/
@@ -72,6 +73,7 @@ alu-nand2tetris-proyecto/
     │   ├── ALU3.tst
     │   └── ALU3.cmp
     ├── diagramas/
+    │   └── ALU3_diagrama.svg          # Diagrama de bloques/lógico
     └── analisis_viabilidad.md         # Análisis arquitectónico (Objetivo 2)
 ```
 
