@@ -1,0 +1,50 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Página-1" id="Vrf5DkE2wn3ArvgmjLcO">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-4" edge="1" parent="1" source="ZNLkwIiMwe9R-Vseej13-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ZNLkwIiMwe9R-Vseej13-3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Subexpresiones compartidas&lt;div&gt;X AND Y AND X OR Y AND&amp;nbsp; X + Y&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="236" x="296" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-6" edge="1" parent="1" source="ZNLkwIiMwe9R-Vseej13-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ZNLkwIiMwe9R-Vseej13-5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-3" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="8 operaciones candidatas(en paralelo)&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;000 X + Y + Z&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 001 (X AND Y) OR Z&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;010 (X OR Y) AND Z&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;011 X AND Y AND Z&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;100 X OR Y OR Z&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;101 X + Y + Z&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;110 ( NOT X) AND Y AND Z&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;111 -(X + Y + Z )&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;op5 y op7 reusan X + Y via Inc16/Not 16&lt;/div&gt;" vertex="1">
+          <mxGeometry height="190" width="438" x="195" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-8" edge="1" parent="1" source="ZNLkwIiMwe9R-Vseej13-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ZNLkwIiMwe9R-Vseej13-7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-5" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Mux8Way16&lt;div&gt;sel = opcode&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="178" x="325" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-10" edge="1" parent="1" source="ZNLkwIiMwe9R-Vseej13-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ZNLkwIiMwe9R-Vseej13-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-7" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="out[16]" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ZNLkwIiMwe9R-Vseej13-9" parent="1" style="whiteSpace=wrap;html=1;rounded=0;" value="Flags: zr, ng&amp;nbsp;&lt;div&gt;ng = out[15]&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="178" x="325" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="s1QsLcBThkEK87L7_6Wc-1" edge="1" parent="1" source="ZNLkwIiMwe9R-Vseej13-1" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="ZNLkwIiMwe9R-Vseej13-5" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="120" />
+              <mxPoint x="800" y="510" />
+            </Array>
+            <mxPoint x="600" y="160" as="sourcePoint" />
+            <mxPoint x="650" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s1QsLcBThkEK87L7_6Wc-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="opcode[3]" vertex="1">
+          <mxGeometry height="30" width="80" x="730" y="300" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
