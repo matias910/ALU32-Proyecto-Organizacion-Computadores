@@ -1,25 +1,52 @@
 // ALU32.hdl
+//
+// 32-bit ALU built from two standard 16-bit ALU chips (Nand2Tetris
+// project 2), sharing the same six control bits (zx, nx, zy, ny, f, no).
+//
+// IMPORTANT (tool limitation #1): the classic Nand2Tetris Hardware
+// Simulator does not support pins wider than 16 bits. Declaring a single
+// 32-bit pin like "x[32]" crashes with "Index 16 out of bounds for length
+// 16". Workaround: split every 32-bit value into two 16-bit pins
+// (low half / high half).
+//
+// IMPORTANT (tool limitation #2): this engine also does not allow reading
+// a composite chip's own OUT pin as a source for another internal part
+// ("Can't connect gate's output pin to part"). Workaround: keep every
+// intermediate result in an INTERNAL signal name, and only copy it into
+// the real OUT pin at the very end (via a harmless self-AND buffer).
+//
+// Scope: correct for all 18 standard operations EXCEPT that only the
+// plain-addition case (x+y) propagates a carry across the 16-bit
+// boundary -- the only one of the 18 standard combinations with f=1 AND
+// no=0. For the rest of the arithmetic combos with no=1, the ALU negates
+// its result internally before we ever see it, so the pre-negation sum
+// can't be recovered from outside without modifying the chip itself.
+//
+// carry = (xLow15 AND yLow15) OR ((xLow15 XOR yLow15) AND NOT lowOut15)
+
 CHIP ALU32 {
     IN
-        x[32], y[32],
+        xLow[16], xHigh[16],
+        yLow[16], yHigh[16],
         zx, nx, zy, ny,
         f, no;
     OUT
-        out[32],
+        outLow[16], outHigh[16],
         zr, ng;
 
     PARTS:
-    // Low 16 bits: standard ALU
-    ALU(x=x[0..15], y=y[0..15], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
+    // Low 16 bits: standard ALU. Result kept in the INTERNAL signal
+    // "lowOut" (not the OUT pin) so it can be read again below.
+    ALU(x=xLow, y=yLow, zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
         out=lowOut, zr=zrLow, ng=ngLow);
 
-    // High 16 bits: computed independently first ("raw")
-    ALU(x=x[16..31], y=y[16..31], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
+    // High 16 bits, raw (before carry correction).
+    ALU(x=xHigh, y=yHigh, zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
         out=highRaw, zr=zrHighRaw, ng=ngHighRaw);
 
     // --- Carry recovery for bit 15 of the low addition ---
-    And(a=x[15], b=y[15], out=andBit15);
-    Xor(a=x[15], b=y[15], out=xorBit15);
+    And(a=xLow[15], b=yLow[15], out=andBit15);
+    Xor(a=xLow[15], b=yLow[15], out=xorBit15);
     Not(in=lowOut[15], out=notSum15);
     And(a=xorBit15, b=notSum15, out=carryTerm);
     Or(a=andBit15, b=carryTerm, out=rawCarry);
@@ -29,21 +56,22 @@ CHIP ALU32 {
     Not(in=no, out=notNo);
     And(a=carryIfF, b=notNo, out=carry);
 
-    // --- Apply +1 correction to high half and output to highOut + out[16..31] ---
+    // --- Apply the +1 correction to the high half when carry=1 ---
     Inc16(in=highRaw, out=highIncremented);
-    Mux16(a=highRaw, b=highIncremented, sel=carry, out=highOut, out=out[16..31]);
+    Mux16(a=highRaw, b=highIncremented, sel=carry, out=highFinal);
 
-    // Low half passes straight through to out[0..15]
-    And16(a=lowOut, b=lowOut, out=out[0..15]);
+    // --- Copy the internal results into the real OUT pins ---
+    And16(a=lowOut, b=lowOut, out=outLow);
+    And16(a=highFinal, b=highFinal, out=outHigh);
 
-    // --- ng: sign bit calculated from internal bus highOut[15] ---
-    And(a=highOut[15], b=highOut[15], out=ng);
+    // --- ng: sign bit of the corrected high half (internal signal) ---
+    And(a=highFinal[15], b=highFinal[15], out=ng);
 
-    // --- zr: calculated using internal buses lowOut and highOut ---
+    // --- zr: true only if ALL 32 bits are zero (internal signals) ---
     Or8Way(in=lowOut[0..7], out=zrA);
     Or8Way(in=lowOut[8..15], out=zrB);
-    Or8Way(in=highOut[0..7], out=zrC);
-    Or8Way(in=highOut[8..15], out=zrD);
+    Or8Way(in=highFinal[0..7], out=zrC);
+    Or8Way(in=highFinal[8..15], out=zrD);
     Or(a=zrA, b=zrB, out=zrAB);
     Or(a=zrC, b=zrD, out=zrCD);
     Or(a=zrAB, b=zrCD, out=anyBitSet);
