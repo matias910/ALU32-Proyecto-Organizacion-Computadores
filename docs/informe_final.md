@@ -23,43 +23,85 @@ Dado que no es posible construir directamente una ALU de 32 bits en el simulador
 componer dos instancias del chip `ALU` estándar de 16 bits (una para la mitad baja, `x[0..15]`
 y `y[0..15]`, otra para la mitad alta, `x[16..31]` y `y[16..31]`), compartiendo las mismas
 seis señales de control (`zx, nx, zy, ny, f, no`). Ver el diagrama de bloques en
-[`objetivo1_alu32bits/diagramas/ALU32_diagrama.svg`](../objetivo1_alu32bits/diagramas/ALU32_diagrama.svg).
+[`objetivo1_alu32bits/diagramas/ALU32 Diagrama.pdf`](../objetivo1_alu32bits/diagramas/ALU32%20Diagrama.pdf).
 
 ### 2.2 Implementación
 
 Las operaciones bit a bit (AND, OR, NOT) quedan correctas de inmediato al aplicar el mismo
-control a ambas mitades, porque no dependen de bits vecinos. La suma (`x+y`) sí necesita
-propagar un acarreo del bit 15 al bit 16, algo que el chip `ALU` no expone directamente. Se
-resolvió con un pequeño circuito adicional que recupera ese acarreo usando únicamente
-`x[15]`, `y[15]` y el bit 15 de la salida de la ALU baja:
+control a ambas mitades, porque no dependen de bits vecinos. Las operaciones aritméticas sí
+necesitan propagar un acarreo del bit 15 al bit 16, y ahí aparece la dificultad central del
+objetivo: **el chip `ALU` no expone su acarreo de salida**. La señal existe dentro del chip,
+pero su interfaz la descarta, así que no se puede leer. Hay que reconstruirla desde afuera.
+
+La reconstrucción usa la identidad del sumador completo
+(`carry_out = mayoría(a, b, carry_in)`), reescrita a partir de `suma = a XOR b XOR carry_in`
+para no depender del carry-in, que tampoco es observable:
 
 ```
-carry = (x15 AND y15) OR ((x15 XOR y15) AND NOT sum15)
+carry = (a15 AND b15) OR ((a15 XOR b15) AND NOT suma15)
 ```
 
-Esta es la identidad estándar de acarreo de un sumador completo
-(`carry_out = mayoría(a, b, cin)`), reescrita a partir de `sum = a XOR b XOR cin` para
-depender solo de `a`, `b` y el bit de suma resultante. El acarreo se aplica únicamente cuando
-la operación seleccionada es exactamente `x+y` (`f=1, no=0`), la única de las 18 funciones
-estándar de la ALU con esa combinación exacta; para el resto de operaciones aritméticas con
-`no=1` (`x+1`, `x-1`, `x-y`, etc.) la ALU niega su resultado internamente antes de exponerlo,
-por lo que no es posible recuperar la suma previa a esa negación sin modificar el chip `ALU`
-por dentro — una limitación reconocida del diseño (ver sección 3.1 del análisis de
-viabilidad para la discusión más amplia sobre este tipo de costos al escalar una ALU).
+Para que esta fórmula sea válida en las 18 operaciones estándar hacen falta dos precisiones:
 
-Cuando corresponde, `Inc16` calcula `highRaw + 1` y un `Mux16` selecciona entre `highRaw` y
-`highRaw+1` según el bit de acarreo calculado. El archivo completo está en
+**(a) `a15` y `b15` son los bits 15 de los operandos *efectivos*, no de los de entrada.**
+Antes de sumar, la ALU aplica `zx`/`nx` sobre `x` y `zy`/`ny` sobre `y`. Toda operación que
+ponga en cero o niegue un operando trabaja internamente con valores distintos a los que
+entraron al chip. Son cinco las operaciones con `f=1, no=0` —`x+y`, `x-1`, `y-1`, la constante
+`0` y la constante `-1`— y en cuatro de ellas los operandos efectivos difieren de los crudos.
+El circuito replica ese preprocesamiento sobre un solo bit (`And` con `NOT zx`, luego `Xor`
+con `nx`) antes de calcular el acarreo.
+
+**(b) `suma15` es el bit de suma real, no siempre el bit visible.** Cuando `no=1` la ALU
+expone `NOT(suma)`. Invertir el bit visible (un `Xor` contra `no`) recupera el bit de suma
+verdadero, de modo que el acarreo también es reconstruible en esas operaciones.
+
+La corrección de la mitad alta depende entonces de lo que esa mitad esté mostrando:
+
+| | la mitad alta muestra | corrección aplicada |
+|---|---|---|
+| `no=0` | la suma `s` | `s + 1` mediante `Inc16` |
+| `no=1` | `NOT(s)` | restar 1, ya que `NOT(s+1) = NOT(s) − 1` |
+
+El decremento se obtiene con `Not16` + `Inc16` + `Not16`, y un `Mux16` selecciona entre la
+mitad alta sin corregir y la corregida según el bit de acarreo. El archivo completo está en
 [`objetivo1_alu32bits/hdl/ALU32.hdl`](../objetivo1_alu32bits/hdl/ALU32.hdl).
+
+**Sobre el costo de este enfoque.** Que la reconstrucción funcione no significa que sea la
+forma correcta de construir una ALU de 32 bits. Una implementación real encadena las etapas
+con `carry_in`/`carry_out` explícitos, o usa un sumador con acarreo anticipado. Aquí se pagan
+compuertas y retardo adicionales para recuperar por fuera una señal que el hardware ya calculó
+por dentro y descartó, y el resultado sigue siendo un acarreo propagado en serie entre las dos
+mitades. Esta distancia entre "funciona" y "es como se hace" es el mismo tipo de costo oculto
+que se analiza para la ALU de tres operandos (ver sección 3 del análisis de viabilidad).
 
 ### 2.3 Resultados de las pruebas
 
-`ALU32.tst` cubre 8 casos: el caso base con todo en cero, una suma simple (`17+3=20`), una
-suma que da cero (`5+(-5)=0`), el caso crítico de acarreo entre mitades con números positivos
-(`65535+1=65536`) y con números negativos (`-1+-1=-2`), una operación AND (`12 AND 10 = 8`),
-una operación OR obtenida por De Morgan (`12 OR 10 = 14`), y el paso de `x` solo forzando `y`
-a cero (`-5`). Todos los valores esperados en `ALU32.cmp` se calcularon simulando fielmente
-la composición del circuito (no solo la aritmética esperada), confirmando que el diseño se
-comporta como se pretende, incluyendo el caso de acarreo que motivó todo el diseño.
+`ALU32.tst` cubre **las 18 operaciones estándar de la ALU con 3 casos cada una (54 en
+total)**. Para cada operación se prueban: ambos operandos en cero, un caso con la mitad baja
+en el límite (`0xFFFF` / `0x0001`) que fuerza el acarreo a cruzar al bit 16, y un caso con
+valores mixtos y el bit 15 activo en ambas mitades.
+
+Los valores esperados en `ALU32.cmp` **se generaron ejecutando el circuito en el Hardware
+Simulator**, no calculándolos a mano. La corrida termina con
+`End of script - Comparison ended successfully`.
+
+Además de esas 54 filas, el diseño se contrastó contra un modelo de referencia independiente
+(una ALU de 32 bits ideal, calculada aritméticamente y no por composición de mitades) sobre
+720 casos aleatorios y de frontera repartidos entre las 18 operaciones. El resultado fue
+correcto en el 100 % de los casos, incluidas las banderas `zr` y `ng`.
+
+Conviene dejar constancia de dos errores detectados y corregidos durante esta verificación,
+porque ninguno se manifestaba en las pruebas iniciales:
+
+1. **Acarreo calculado sobre los operandos crudos.** Las operaciones `x-1`, `y-1` y las
+   constantes `0` y `-1` también cumplen `f=1, no=0`, y en ellas los operandos efectivos no
+   coinciden con los de entrada. La constante `-1`, por ejemplo, devolvía `0x0000FFFF` en vez
+   de `0xFFFFFFFF`.
+
+2. **Correcciones bloqueadas cuando `no=1`.** Siete de las 18 operaciones quedaban sin
+   corregir. El caso más visible era la constante `1`, que devolvía `0x00010001` en lugar de
+   `0x00000001`: cada mitad calculaba `0xFFFF + 0xFFFF = 0xFFFE` y negaba a `0x0001`, sin que
+   el acarreo perdido entre mitades se compensara nunca.
 
 ## 3. Objetivo 2 — ALU de tres entradas
 
@@ -84,7 +126,7 @@ En lugar de reconfigurar un único camino de datos según el opcode (como hace l
 estándar), se calculan las 8 operaciones en paralelo reutilizando subexpresiones compartidas
 (`X AND Y`, `X OR Y`, `X + Y`) y se selecciona el resultado final con un `Mux8Way16`
 controlado por `opcode`. Ver diagrama en
-[`objetivo2_alu3entradas/diagramas/ALU3_diagrama.svg`](../objetivo2_alu3entradas/diagramas/ALU3_diagrama.svg)
+[`objetivo2_alu3entradas/diagramas/ALU de 3 Diagrama.drawio.pdf`](../objetivo2_alu3entradas/diagramas/ALU%20de%203%20Diagrama.drawio.pdf)
 e implementación en
 [`objetivo2_alu3entradas/hdl/ALU3.hdl`](../objetivo2_alu3entradas/hdl/ALU3.hdl).
 
