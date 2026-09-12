@@ -1,46 +1,19 @@
 // ALU32.hdl
-//
-// 32-bit ALU built from two standard 16-bit ALU chips (Nand2Tetris
-// project 2), sharing the same six control bits (zx, nx, zy, ny, f, no).
-//
-// Scope: correct for all 18 standard operations EXCEPT that only the
-// plain-addition case (x+y) propagates a carry across the 16-bit
-// boundary. That's the only one of the 18 standard combinations with
-// f=1 AND no=0, so it's the only one that needs it: bitwise ops (f=0)
-// are carry-free by nature, and the other arithmetic combos (x+1,
-// x-1, x-y, etc.) all have no=1, meaning the ALU negates its result
-// internally before we ever see it -- there's no way to recover the
-// pre-negation sum from outside the chip without a custom internal
-// modification. Extending this design to those cases is a real
-// architectural cost worth mentioning in the Objetivo 2 discussion
-// on control-unit complexity.
-//
-// How the carry is recovered without looking inside the ALU:
-//   carry = (x15 AND y15) OR ((x15 XOR y15) AND NOT lowOut15)
-// This is the standard full-adder identity carry_out = majority(a,b,cin),
-// rewritten using sum = a XOR b XOR cin so it only needs a, b, and sum.
-// It holds regardless of what cin actually was.
-
 CHIP ALU32 {
     IN
-        x[32], y[32],  // 32-bit inputs
-        zx, // zero the x input?
-        nx, // negate the x input?
-        zy, // zero the y input?
-        ny, // negate the y input?
-        f,  // compute (out = x + y) or (out = x & y)?
-        no; // negate the out output?
+        x[32], y[32],
+        zx, nx, zy, ny,
+        f, no;
     OUT
-        out[32], // 32-bit output
-        zr,      // true iff out = 0
-        ng;      // true iff out < 0
+        out[32],
+        zr, ng;
 
     PARTS:
-    // Low 16 bits: standard ALU, no correction needed.
+    // Low 16 bits: standard ALU
     ALU(x=x[0..15], y=y[0..15], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
         out=lowOut, zr=zrLow, ng=ngLow);
 
-    // High 16 bits: computed independently first ("raw"), corrected below.
+    // High 16 bits: computed independently first ("raw")
     ALU(x=x[16..31], y=y[16..31], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
         out=highRaw, zr=zrHighRaw, ng=ngHighRaw);
 
@@ -56,21 +29,21 @@ CHIP ALU32 {
     Not(in=no, out=notNo);
     And(a=carryIfF, b=notNo, out=carry);
 
-    // --- Apply the +1 correction to the high half when carry=1 ---
+    // --- Apply +1 correction to high half and output to highOut + out[16..31] ---
     Inc16(in=highRaw, out=highIncremented);
-    Mux16(a=highRaw, b=highIncremented, sel=carry, out=out[16..31]);
+    Mux16(a=highRaw, b=highIncremented, sel=carry, out=highOut, out=out[16..31]);
 
-    // Low half passes straight through.
+    // Low half passes straight through to out[0..15]
     And16(a=lowOut, b=lowOut, out=out[0..15]);
 
-    // --- ng: sign bit of the corrected 32-bit result ---
-    And(a=out[31], b=out[31], out=ng);
+    // --- ng: sign bit calculated from internal bus highOut[15] ---
+    And(a=highOut[15], b=highOut[15], out=ng);
 
-    // --- zr: true only if ALL 32 bits are zero ---
-    Or8Way(in=out[0..7], out=zrA);
-    Or8Way(in=out[8..15], out=zrB);
-    Or8Way(in=out[16..23], out=zrC);
-    Or8Way(in=out[24..31], out=zrD);
+    // --- zr: calculated using internal buses lowOut and highOut ---
+    Or8Way(in=lowOut[0..7], out=zrA);
+    Or8Way(in=lowOut[8..15], out=zrB);
+    Or8Way(in=highOut[0..7], out=zrC);
+    Or8Way(in=highOut[8..15], out=zrD);
     Or(a=zrA, b=zrB, out=zrAB);
     Or(a=zrC, b=zrD, out=zrCD);
     Or(a=zrAB, b=zrCD, out=anyBitSet);
