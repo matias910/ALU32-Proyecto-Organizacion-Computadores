@@ -1,29 +1,55 @@
 // ALU32.hdl
 //
-// ALU de 32 bits construida componiendo dos ALU estandar de 16 bits
-// (chip ALU del proyecto 2 de Nand2Tetris), que comparten los mismos seis
-// bits de control (zx, nx, zy, ny, f, no).
+// ALU de 32 bits construida componiendo dos chips ALU estandar de 16 bits
+// (proyecto 2 de Nand2Tetris), que comparten los mismos seis bits de control
+// (zx, nx, zy, ny, f, no). El chip ALU se usa como caja negra: no se modifica.
 //
-// LIMITACION 1 DEL SIMULADOR: no admite pines de mas de 16 bits. Por eso
-// cada valor de 32 bits se parte en dos pines de 16 (mitad baja / mitad alta).
+// ---------------------------------------------------------------------------
+// RESTRICCIONES DE LA HERRAMIENTA (no del diseño)
+// ---------------------------------------------------------------------------
+// 1. El Hardware Simulator no admite pines de mas de 16 bits. Por eso cada
+//    valor de 32 bits se parte en dos pines de 16 (mitad baja / mitad alta).
 //
-// LIMITACION 2 DEL SIMULADOR: no permite recortar bits (sub-bus) de una
-// señal INTERNA. Solo se pueden recortar pines IN/OUT del chip o las salidas
-// de una PARTE en el momento de conectarlas. Por eso las banderas y el bit
-// de signo se extraen directamente en la conexion de salida de cada parte
-// (out[15]=..., out[0..7]=...), no guardando la señal y recortandola despues.
+// 2. El simulador no permite recortar bits (sub-bus) de una señal INTERNA:
+//    "sub bus of an internal node may not be used". Solo se pueden recortar
+//    pines IN/OUT del chip o las salidas de una PARTE en el momento de
+//    conectarlas. Por eso las banderas y el bit de signo se extraen en la
+//    propia conexion de salida (out[15]=..., out[0..7]=...) y no guardando
+//    la señal para recortarla despues.
 //
-// ACARREO: el chip ALU no expone su carry interno, asi que se reconstruye
-// desde afuera con la identidad del sumador completo:
+// ---------------------------------------------------------------------------
+// RESTRICCION DE LA INTERFAZ DEL CHIP ALU (se documenta, no se corrige)
+// ---------------------------------------------------------------------------
+// El chip ALU del curso no expone su acarreo de salida. Al componer dos ALU
+// de 16 bits, el acarreo del bit 15 al bit 16 se pierde. No se puede leer:
+// hay que RECONSTRUIRLO desde afuera con logica adicional. Ese costo en
+// compuertas y en retardo es el argumento central del analisis de viabilidad
+// (ver docs/informe_final.md, seccion 2.2).
+//
+// ---------------------------------------------------------------------------
+// RECONSTRUCCION DEL ACARREO
+// ---------------------------------------------------------------------------
+// Identidad del sumador completo, escrita para no necesitar el carry-in:
+//
 //     carry = (a15 AND b15) OR ((a15 XOR b15) AND NOT suma15)
-// donde a15/b15 son los bits 15 de los operandos EFECTIVOS (despues de
-// aplicar zx/nx/zy/ny), no de los operandos crudos.
 //
-// ALCANCE: la correccion de acarreo se aplica a todas las operaciones con
-// f=1 y no=0, que son x+y, x-1, y-1, la constante 0 y la constante -1.
-// Las operaciones con no=1 (x+1, y+1, x-y, y-x) NO quedan corregidas: la
-// ALU niega su resultado internamente antes de que podamos verlo, y la suma
-// previa a esa negacion no es recuperable desde afuera sin modificar el chip.
+// Dos detalles que la hacen valida para las 18 operaciones:
+//
+//   a) a15 y b15 son los bits 15 de los operandos EFECTIVOS, es decir
+//      despues de aplicar zx/nx/zy/ny. Usar los operandos crudos da un
+//      acarreo incorrecto en toda operacion que ponga en cero o niegue un
+//      operando (x-1, y-1, la constante 0, la constante -1, ...).
+//
+//   b) suma15 es el bit de suma REAL. Cuando no=1 la ALU expone NOT(suma),
+//      asi que el bit visible se invierte para recuperarlo: suma15 se
+//      obtiene con XOR contra no.
+//
+// Correccion de la mitad alta, segun lo que esa mitad esta mostrando:
+//   - si no=0 muestra la suma s        -> la correccion es s+1  (Inc16)
+//   - si no=1 muestra NOT(s), y como
+//     NOT(s+1) = NOT(s) - 1            -> la correccion es restar 1
+//
+// ALCANCE: correcto para las 18 operaciones estandar de la ALU.
 
 CHIP ALU32 {
     IN
@@ -63,19 +89,24 @@ CHIP ALU32 {
     // ---- Reconstruccion del acarreo del bit 15 al bit 16 ----
     And(a=x15, b=y15, out=bothOnes);
     Xor(a=x15, b=y15, out=exactlyOne);
-    Not(in=lowSum15, out=notSum15);
+    Xor(a=lowSum15, b=no, out=sum15Real);
+    Not(in=sum15Real, out=notSum15);
     And(a=exactlyOne, b=notSum15, out=carryFromSum);
     Or(a=bothOnes, b=carryFromSum, out=rawCarry);
 
-    // Solo tiene sentido cuando la operacion es realmente una suma (f=1)
-    // y el resultado no viene negado (no=0).
-    And(a=f, b=rawCarry, out=carryIfAdd);
-    Not(in=no, out=notNo);
-    And(a=carryIfAdd, b=notNo, out=carry);
+    // Solo tiene sentido cuando la operacion es realmente una suma (f=1).
+    And(a=f, b=rawCarry, out=carry);
 
-    // ---- Correccion +1 sobre la mitad alta ----
+    // ---- Correccion sobre la mitad alta ----
+    // Si no=0 la mitad alta muestra la suma: se le suma 1.
+    // Si no=1 la mitad alta muestra NOT(suma), y como
+    // NOT(s+1) = NOT(s)-1, la correccion es RESTAR 1.
     Inc16(in=highRaw, out=highPlusOne);
-    Mux16(a=highRaw, b=highPlusOne, sel=carry,
+    Not16(in=highRaw, out=nHigh);
+    Inc16(in=nHigh, out=nHighInc);
+    Not16(in=nHighInc, out=highMinusOne);
+    Mux16(a=highPlusOne, b=highMinusOne, sel=no, out=highCorrected);
+    Mux16(a=highRaw, b=highCorrected, sel=carry,
           out=outHigh,
           out[15]=ng,
           out[0..7]=highByte0,
