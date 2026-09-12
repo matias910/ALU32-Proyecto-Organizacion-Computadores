@@ -1,0 +1,93 @@
+// ALU32.hdl
+//
+// ALU de 32 bits construida componiendo dos ALU estandar de 16 bits
+// (chip ALU del proyecto 2 de Nand2Tetris), que comparten los mismos seis
+// bits de control (zx, nx, zy, ny, f, no).
+//
+// LIMITACION 1 DEL SIMULADOR: no admite pines de mas de 16 bits. Por eso
+// cada valor de 32 bits se parte en dos pines de 16 (mitad baja / mitad alta).
+//
+// LIMITACION 2 DEL SIMULADOR: no permite recortar bits (sub-bus) de una
+// señal INTERNA. Solo se pueden recortar pines IN/OUT del chip o las salidas
+// de una PARTE en el momento de conectarlas. Por eso las banderas y el bit
+// de signo se extraen directamente en la conexion de salida de cada parte
+// (out[15]=..., out[0..7]=...), no guardando la señal y recortandola despues.
+//
+// ACARREO: el chip ALU no expone su carry interno, asi que se reconstruye
+// desde afuera con la identidad del sumador completo:
+//     carry = (a15 AND b15) OR ((a15 XOR b15) AND NOT suma15)
+// donde a15/b15 son los bits 15 de los operandos EFECTIVOS (despues de
+// aplicar zx/nx/zy/ny), no de los operandos crudos.
+//
+// ALCANCE: la correccion de acarreo se aplica a todas las operaciones con
+// f=1 y no=0, que son x+y, x-1, y-1, la constante 0 y la constante -1.
+// Las operaciones con no=1 (x+1, y+1, x-y, y-x) NO quedan corregidas: la
+// ALU niega su resultado internamente antes de que podamos verlo, y la suma
+// previa a esa negacion no es recuperable desde afuera sin modificar el chip.
+
+CHIP ALU32 {
+    IN
+        xLow[16], xHigh[16],
+        yLow[16], yHigh[16],
+        zx, nx, zy, ny,
+        f, no;
+    OUT
+        outLow[16], outHigh[16],
+        zr, ng;
+
+    PARTS:
+    // ---- Mitad baja (bits 0..15) ----
+    // La salida se conecta de una vez al pin OUT y, en paralelo, se extraen
+    // el bit de signo y los dos bytes que necesita la bandera zr.
+    ALU(x=xLow, y=yLow, zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
+        out=outLow,
+        out[15]=lowSum15,
+        out[0..7]=lowByte0,
+        out[8..15]=lowByte1);
+
+    // ---- Mitad alta (bits 16..31), todavia sin corregir ----
+    ALU(x=xHigh, y=yHigh, zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no,
+        out=highRaw);
+
+    // ---- Operandos EFECTIVOS del bit 15 de la mitad baja ----
+    // Se replica sobre un solo bit lo que la ALU hace internamente con el
+    // operando completo: zx/zy lo ponen en cero, nx/ny lo niegan.
+    Not(in=zx, out=notZx);
+    And(a=xLow[15], b=notZx, out=x15zeroed);
+    Xor(a=x15zeroed, b=nx, out=x15);
+
+    Not(in=zy, out=notZy);
+    And(a=yLow[15], b=notZy, out=y15zeroed);
+    Xor(a=y15zeroed, b=ny, out=y15);
+
+    // ---- Reconstruccion del acarreo del bit 15 al bit 16 ----
+    And(a=x15, b=y15, out=bothOnes);
+    Xor(a=x15, b=y15, out=exactlyOne);
+    Not(in=lowSum15, out=notSum15);
+    And(a=exactlyOne, b=notSum15, out=carryFromSum);
+    Or(a=bothOnes, b=carryFromSum, out=rawCarry);
+
+    // Solo tiene sentido cuando la operacion es realmente una suma (f=1)
+    // y el resultado no viene negado (no=0).
+    And(a=f, b=rawCarry, out=carryIfAdd);
+    Not(in=no, out=notNo);
+    And(a=carryIfAdd, b=notNo, out=carry);
+
+    // ---- Correccion +1 sobre la mitad alta ----
+    Inc16(in=highRaw, out=highPlusOne);
+    Mux16(a=highRaw, b=highPlusOne, sel=carry,
+          out=outHigh,
+          out[15]=ng,
+          out[0..7]=highByte0,
+          out[8..15]=highByte1);
+
+    // ---- zr: 1 solo si los 32 bits del resultado son cero ----
+    Or8Way(in=lowByte0,  out=any0);
+    Or8Way(in=lowByte1,  out=any1);
+    Or8Way(in=highByte0, out=any2);
+    Or8Way(in=highByte1, out=any3);
+    Or(a=any0, b=any1, out=anyLow);
+    Or(a=any2, b=any3, out=anyHigh);
+    Or(a=anyLow, b=anyHigh, out=anyBitSet);
+    Not(in=anyBitSet, out=zr);
+}
