@@ -126,7 +126,7 @@ En lugar de reconfigurar un único camino de datos según el opcode (como hace l
 estándar), se calculan las 8 operaciones en paralelo reutilizando subexpresiones compartidas
 (`X AND Y`, `X OR Y`, `X + Y`) y se selecciona el resultado final con un `Mux8Way16`
 controlado por `opcode`. Ver diagrama en
-[`objetivo2_alu3entradas/diagramas/ALU de 3 Diagrama.drawio.pdf`](../objetivo2_alu3entradas/diagramas/ALU%20de%203%20Diagrama.drawio.pdf)
+[`objetivo2_alu3entradas/diagramas/ALU de 3 Diagrama.pdf`](../objetivo2_alu3entradas/diagramas/ALU%20de%203%20Diagrama.pdf)
 e implementación en
 [`objetivo2_alu3entradas/hdl/ALU3.hdl`](../objetivo2_alu3entradas/hdl/ALU3.hdl).
 
