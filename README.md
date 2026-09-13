@@ -64,7 +64,8 @@ alu-nand2tetris-proyecto/
 │   │   ├── ALU32.tst                  # Script de prueba
 │   │   └── ALU32.cmp                  # Salida esperada (comparación)
 │   └── diagramas/
-│       └── ALU32_diagrama.svg         # Diagrama de bloques/lógico
+│       ├── ALU32_diagrama.draw.io        # Diagrama de bloques/lógico
+|       └── ALU32_Diagrama.pdf
 └── objetivo2_alu3entradas/
     ├── README.md
     ├── hdl/
@@ -73,7 +74,8 @@ alu-nand2tetris-proyecto/
     │   ├── ALU3.tst
     │   └── ALU3.cmp
     ├── diagramas/
-    │   └── ALU3_diagrama.svg          # Diagrama de bloques/lógico
+    │   ├── ALU_de_3_diagrama.draw.io          # Diagrama de bloques/lógico
+    |   └── ALU_de_3_diagrama.pdf
     └── analisis_viabilidad.md         # Análisis arquitectónico (Objetivo 2)
 ```
 
@@ -93,13 +95,34 @@ alu-nand2tetris-proyecto/
 
 ## 🔀 Flujo de trabajo con Git
 
-- `main`: rama estable, solo recibe *merges* revisados por el equipo.
-- `objetivo1-alu32`: desarrollo de la ALU de 32 bits (Persona 1).
-- `objetivo2-alu3entradas`: desarrollo de la ALU de 3 entradas (Persona 2).
-- `docs-pruebas`: scripts de prueba, análisis y documentación (Persona 3).
+Todo el trabajo se hizo sobre la rama `main`. No se usaron ramas por integrante ni *Pull
+Requests*: para un equipo de tres personas trabajando sobre archivos distintos durante dos
+semanas, la coordinación directa resultó más ágil que el ciclo de rama y revisión formal.
 
-Cada integrante trabaja en su rama y abre un *Pull Request* hacia `main` para revisión cruzada
-antes de fusionar (ver plantilla en [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md)).
+El flujo real fue:
+
+1. Cada integrante clonó el repositorio y trabajó localmente en su parte.
+2. Antes de subir algo, lo revisábamos entre los tres.
+3. Una vez aprobado, se hacía `push` directo a `main`.
+
+La revisión ocurrió antes del `push`, no después mediante *Pull Request*. El historial de
+commits refleja ese proceso: cada commit corresponde a un cambio ya revisado por el equipo.
+
+**Consecuencia a tener en cuenta:** al no haber ramas intermedias, `main` recibió directamente
+también los cambios en curso. Esto se nota en el historial, donde algunas correcciones
+aparecen repartidas en varios commits en lugar de llegar consolidadas. Con un equipo más
+grande o un proyecto más largo, el costo de no tener una rama de integración sería mayor que
+el ahorro en trámite.
+
+### Nota sobre las copias duplicadas de los `.hdl`
+
+Cada chip existe dos veces en el repositorio: en `hdl/` y en `tests/`. No es un descuido — el
+Hardware Simulator resuelve la instrucción `load` relativa a la carpeta donde está el `.tst`,
+así que necesita el `.hdl` junto al script de prueba.
+
+**Al modificar un chip hay que actualizar ambas copias.** Un `.hdl` desactualizado en `tests/`
+hace que el simulador ejecute una versión distinta a la que está documentada en `hdl/`, y las
+pruebas pasarían sobre código que no es el entregado.
 
 ## 🎥 Entregables
 
