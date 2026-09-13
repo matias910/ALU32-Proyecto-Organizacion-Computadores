@@ -15,7 +15,7 @@ por un `opcode` de 3 bits.
 | `hdl/ALU3.hdl` | Implementación de la ALU de 3 entradas en HDL. |
 | `tests/ALU3.tst` | Script de prueba para el Hardware Simulator. |
 | `tests/ALU3.cmp` | Salida esperada para validar la implementación. |
-| `diagramas/ALU3_diagrama.svg` | Diagrama de bloques/lógico de la arquitectura. |
+| `diagramas/ALU_de_3_diagrama.pdf` | Diagrama de bloques/lógico de la arquitectura. |
 | `analisis_viabilidad.md` | Análisis escrito de viabilidad arquitectónica. |
 
 ## Interfaz del chip
