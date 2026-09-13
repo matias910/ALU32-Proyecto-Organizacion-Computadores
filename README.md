@@ -64,7 +64,8 @@ alu-nand2tetris-proyecto/
 │   │   ├── ALU32.tst                  # Script de prueba
 │   │   └── ALU32.cmp                  # Salida esperada (comparación)
 │   └── diagramas/
-│       └── ALU32_diagrama.svg         # Diagrama de bloques/lógico
+│       ├── ALU32_diagrama.draw.io        # Diagrama de bloques/lógico
+|       └── ALU32_Diagrama.pdf
 └── objetivo2_alu3entradas/
     ├── README.md
     ├── hdl/
@@ -73,7 +74,8 @@ alu-nand2tetris-proyecto/
     │   ├── ALU3.tst
     │   └── ALU3.cmp
     ├── diagramas/
-    │   └── ALU3_diagrama.svg          # Diagrama de bloques/lógico
+    │   ├── ALU_de_3_diagrama.draw.io          # Diagrama de bloques/lógico
+    |   └── ALU_de_3_diagrama.pdf
     └── analisis_viabilidad.md         # Análisis arquitectónico (Objetivo 2)
 ```
 
