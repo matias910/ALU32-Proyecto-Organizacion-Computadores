@@ -95,6 +95,7 @@ alu-nand2tetris-proyecto/
 
 ## 🔀 Flujo de trabajo con Git
 
+<<<<<<< HEAD
 Todo el trabajo se hizo sobre la rama `main`. No se usaron ramas por integrante ni *Pull
 Requests*: para un equipo de tres personas trabajando sobre archivos distintos durante dos
 semanas, la coordinación directa resultó más ágil que el ciclo de rama y revisión formal.
@@ -123,6 +124,25 @@ así que necesita el `.hdl` junto al script de prueba.
 **Al modificar un chip hay que actualizar ambas copias.** Un `.hdl` desactualizado en `tests/`
 hace que el simulador ejecute una versión distinta a la que está documentada en `hdl/`, y las
 pruebas pasarían sobre código que no es el entregado.
+=======
+Todo el trabajo se hizo sobre la rama main. No se usaron ramas por integrante ni Pull Requests: para un equipo de tres personas trabajando sobre archivos distintos durante dos semanas, la coordinación directa resultó más ágil que el ciclo de rama y revisión formal.
+
+El flujo real fue:
+
+Cada integrante clonó el repositorio y trabajó localmente en su parte.
+Antes de subir algo, lo revisábamos entre los tres.
+Una vez aprobado, se hacía push directo a main.
+
+La revisión ocurrió antes del push, no después mediante Pull Request. El historial de commits refleja ese proceso: cada commit corresponde a un cambio ya revisado por el equipo.
+
+Consecuencia a tener en cuenta: al no haber ramas intermedias, main recibió directamente también los cambios en curso. Esto se nota en el historial, donde algunas correcciones aparecen repartidas en varios commits en lugar de llegar consolidadas. Con un equipo más grande o un proyecto más largo, el costo de no tener una rama de integración sería mayor que el ahorro en trámite.
+
+Nota sobre las copias duplicadas de los .hdl
+
+Cada chip existe dos veces en el repositorio: en hdl/ y en tests/. No es un descuido — el Hardware Simulator resuelve la instrucción load relativa a la carpeta donde está el .tst, así que necesita el .hdl junto al script de prueba.
+
+Al modificar un chip hay que actualizar ambas copias. Un .hdl desactualizado en tests/ hace que el simulador ejecute una versión distinta a la que está documentada en hdl/, y las pruebas pasarían sobre código que no es el entregado.
+>>>>>>> 9c59183263ebe91cb4fdc319501cb07932dab72e
 
 ## 🎥 Entregables
 

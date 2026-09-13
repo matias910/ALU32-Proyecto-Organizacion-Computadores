@@ -146,7 +146,7 @@ en CPUs y GPUs modernas.
 `ALU3.tst` incluye un caso por cada uno de los 8 opcodes, más dos casos adicionales con
 opcode `000` para verificar la bandera `zr` (con `x=y=z=0`) y el manejo de operandos
 negativos (`x=y=z=-1`, que en complemento a dos son `0xFFFF`). Todos los valores esperados en
-`ALU3.cmp` se calcularon simulando la lógica exacta de cada una de las 8 operaciones.
+`ALU3.cmp` **se generaron ejecutando el circuito en el Hardware Simulator**, no calculándolos a mano
 
 ## 4. Conclusiones
 
