@@ -1,17 +1,3 @@
-// Objetivo 2 - Proyecto ALU Nand2Tetris
-// Script de prueba: ALU3.tst
-// Responsable: Persona 2 (con apoyo de Persona 3)
-//
-// Un caso por cada uno de los 8 opcodes definidos en el README de esta carpeta,
-// mas dos casos extra de opcode 0 para verificar la bandera zr (cero) y el manejo
-// de operandos negativos (todo unos = -1 en complemento a dos).
-//
-// Nota: el simulador solo acepta valores firmados (-32768..32767) al hacer
-// "set" sobre un pin de 16 bits. Los valores que en representacion sin signo
-// serian 61680 (0xF0F0) y 65535 (0xFFFF) se escriben aqui como -3856 y -1
-// respectivamente -- son exactamente los mismos bits, solo el formato de
-// entrada cambia.
-
 load ALU3.hdl,
 output-file ALU3.out,
 compare-to ALU3.cmp,

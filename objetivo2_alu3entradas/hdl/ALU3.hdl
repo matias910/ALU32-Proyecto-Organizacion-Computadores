@@ -1,15 +1,7 @@
-// ALU3.hdl
-//
 // Objetivo 2 - ALU no convencional de tres operandos de entrada (X, Y, Z)
 // de 16 bits, seleccionada por un codigo de operacion de 3 bits (8 operaciones).
-//
-// NOTA IMPORTANTE: este simulador no permite recortar bits (sub-bus) de
-// una señal INTERNA: "sub bus of an internal node may not be used". Solo
-// se pueden recortar pines IN/OUT del chip o las salidas de una PARTE en
-// el momento de conectarlas. Por eso zr y ng se derivan de sub-buses
-// tomados directamente en la conexion de salida del Mux8Way16.
-//
-// Tabla de operaciones (ver tambien README.md de esta carpeta):
+
+// Tabla de operaciones 
 //   opcode | operacion
 //   000    | X + Y + Z
 //   001    | (X AND Y) OR Z
@@ -36,7 +28,7 @@ CHIP ALU3 {
     Or16(a=x, b=y, out=xyOr);
     Add16(a=x, b=y, out=xySum);
 
-    // op0 (000): X + Y + Z
+    // op0 (000): X + Y + Zz
     Add16(a=xySum, b=z, out=op0);
 
     // op1 (001): (X AND Y) OR Z
