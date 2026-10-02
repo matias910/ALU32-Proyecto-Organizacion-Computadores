@@ -126,8 +126,7 @@ pruebas pasarían sobre código que no es el entregado.
 
 ## 🎥 Entregables
 
-- Video de sustentación (máx. 5 min por pregunta, 10 min en total) — enlace en
-  [`docs/video_sustentacion.md`](docs/video_sustentacion.md).
+- Video de sustentación — enlace: https://drive.google.com/file/d/1uyKhLzvyhQBuCOsQPv-oe0JugjEBVmzr/view?usp=sharing
 - Documento con el esquema de chip, el código HDL y la estrategia —
   [`docs/informe_final.md`](docs/informe_final.md).
 - Evidencia enviada individualmente por cada integrante en EAFIT Interactiva.
